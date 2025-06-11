@@ -22,6 +22,22 @@ const regionsColor: Record<string, string> = {
   Unknown: '#9ca3af', // สีสำหรับประเทศที่ไม่รู้จัก
 };
 
+// Add this helper function at the top level
+const formatPopulation = (value: number, isLarge: boolean = false) => {
+  if (!isLarge) {
+    return value.toLocaleString();
+  }
+  
+  if (value >= 1000000000) {
+    return `${(value / 1000000000).toFixed(1)}B`;
+  } else if (value >= 1000000) {
+    return `${(value / 1000000).toFixed(1)}M`;
+  } else if (value >= 1000) {
+    return `${(value / 1000).toFixed(1)}K`;
+  }
+  return value.toString();
+};
+
 export default function PopulationRacePage() {
   const [dataByYear, setDataByYear] = useState<Record<number, PopulationData[]>>({});
   const [year, setYear] = useState<number>(1950);
@@ -164,7 +180,7 @@ export default function PopulationRacePage() {
   // Loading component
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-white">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <h2 className="text-xl font-semibold text-gray-700 mb-2">Loading Population Data</h2>
@@ -184,7 +200,7 @@ export default function PopulationRacePage() {
   // Error component
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-white">
         <div className="text-center">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
           <h2 className="text-xl font-semibold text-gray-700 mb-2">Error Loading Data</h2>
@@ -201,7 +217,7 @@ export default function PopulationRacePage() {
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto font-sans">
+    <div className="p-6 max-w-4xl mx-auto font-sans !bg-white !text-gray-500 w-full">
       <h1 className="text-2xl font-bold mb-4 text-start">Population growth per country, 1950 to 2021</h1>
       <p className="text-start text-gray-600 mb-6">Click on the legend below to filter by continent 💡</p>
       
@@ -236,22 +252,27 @@ export default function PopulationRacePage() {
       </div>
 
       {/* Scale Bar แกน X (ตัวเลขประชากร) */}
-      <div className="mb-4 relative">
+      <div className="mb-4 relative sm:block hidden">
         <div className="flex items-center w-full">
           {/* เลขอันดับ */}
-          <div className="w-8 text-right font-bold text-gray-600 mr-3"></div>
+          <div className="w-8  hidden lg:block text-right font-bold text-gray-600 mr-3"></div>
           
           {/* ชื่อประเทศ */}
-          <div className="w-32 font-semibold text-sm mr-3 text-left"></div>
+          <div className="w-5 lg:w-32   font-semibold text-sm mr-3 text-left"></div>
           
           <div className="flex-1 mr-3">
             <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
               <span>0</span>
-              <span>{(maxPopulation * 0.2).toLocaleString()}</span>
-              <span>{(maxPopulation * 0.4).toLocaleString()}</span>
-              <span>{(maxPopulation * 0.6).toLocaleString()}</span>
-              <span>{(maxPopulation * 0.8).toLocaleString()}</span>
-              <span>{maxPopulation.toLocaleString()}</span>
+              <span className="lg:hidden">{formatPopulation(maxPopulation * 0.2, true)}</span>
+              <span className="hidden lg:block">{formatPopulation(maxPopulation * 0.2)}</span>
+              <span className="lg:hidden">{formatPopulation(maxPopulation * 0.4, true)}</span>
+              <span className="hidden lg:block">{formatPopulation(maxPopulation * 0.4)}</span>
+              <span className="lg:hidden">{formatPopulation(maxPopulation * 0.6, true)}</span>
+              <span className="hidden lg:block">{formatPopulation(maxPopulation * 0.6)}</span>
+              <span className="lg:hidden">{formatPopulation(maxPopulation * 0.8, true)}</span>
+              <span className="hidden lg:block">{formatPopulation(maxPopulation * 0.8)}</span>
+              <span className="lg:hidden">{formatPopulation(maxPopulation, true)}</span>
+              <span className="hidden lg:block">{formatPopulation(maxPopulation)}</span>
             </div>
             <div className="h-1 bg-gray-200 rounded mb-4"></div>
           </div>
@@ -272,15 +293,18 @@ export default function PopulationRacePage() {
               className="flex items-center w-full"
             >
               {/* เลขอันดับ */}
-              <div className="w-8 text-right font-bold text-gray-600 mr-3">
+              <div className="w-8 text-right hidden lg:block font-bold text-gray-600 mr-3">
                 {index + 1}
               </div>
               
               {/* ธงชาติ + ชื่อประเทศ */}
-              <div className="w-32 font-semibold text-sm mr-3 text-left flex items-center gap-2">
+              <div className="w-5 lg:w-32  font-semibold text-sm mr-3 text-left flex items-center gap-2">
                 
-                <span className="truncate">
+                <span className="truncate hidden lg:block">
                   {item.country}
+                </span>
+                <span className="truncate block lg:hidden">
+                  {countryFlags[item.country] ?? 'Unknown'}
                 </span>
               </div>
               
@@ -296,7 +320,7 @@ export default function PopulationRacePage() {
                     minWidth: '20px'
                   }}
                 />
-                <span className={`fi fi-${countryFlags[item.country] || ''} absolute right-[30px]`}></span>
+                <span className={`fi fi-${countryFlags[item.country] || ''} absolute lg:right-[30px] right-[25px] `}></span>
                 <div className="w-28 text-start ">
                   <AnimatedNumber value={item.population} />
                 </div>
@@ -306,11 +330,17 @@ export default function PopulationRacePage() {
         </AnimatePresence>
         
         {/* Year และ Total แสดงด้านขวา */}
-        <div className='mt-8 absolute right-[28%] p-4 rounded-lg bottom-[15%]'>
+        <div className='mt-8 relative lg:absolute  right-[28%] p-4 rounded-lg bottom-[15%]'>
           <div className="text-right mb-6">
             <div className="text-4xl font-bold text-gray-600">{year}</div>
-              <div className="text-lg text-gray-600">
-                Total: {top12Data.reduce((sum, item) => sum + item.population, 0).toLocaleString()}
+              <div className="text-lg text-gray-600 flex justify-end items-center">
+                Total: 
+                <span className="block lg:hidden ml-1">
+                  {formatPopulation(top12Data.reduce((sum : number, item : PopulationData) => sum + item.population, 0), true)}
+                </span>
+                <span className="hidden lg:block ml-1">
+                  {formatPopulation(top12Data.reduce((sum : number, item : PopulationData) => sum + item.population, 0))}
+                </span>
               </div>
             </div>
           </div>
@@ -365,17 +395,19 @@ export default function PopulationRacePage() {
   );
 }
 
+// Update the AnimatedNumber component to be responsive
 function AnimatedNumber({ value }: { value: number }) {
   const spring = useSpring(value, { damping: 20, stiffness: 100 });
-  const rounded = useTransform(spring, (latest) => Math.round(latest).toLocaleString());
+  const rounded = useTransform(spring, (latest) => Math.round(latest));
 
   useEffect(() => {
     spring.set(value);
   }, [value]);
 
   return (
-    <motion.span className="ml-2 tabular-nums text-sm w-24 text-right inline-block">
-      {rounded}
+    <motion.span className="ml-2 tabular-nums text-sm w-24 text-left inline-block">
+      <span className="block lg:hidden">{formatPopulation(rounded.get(), true)}</span>
+      <span className="hidden lg:block">{rounded.get().toLocaleString()}</span>
     </motion.span>
   );
 }
