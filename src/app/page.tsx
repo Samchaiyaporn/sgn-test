@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import Papa from 'papaparse';
 import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion';
+import { CountryToContinent } from './data/countryToContinent';
+import { CountryFlags } from './data/countryFlags';
 
 interface PopulationData {
   year: number;
@@ -19,389 +21,20 @@ const regionsColor: Record<string, string> = {
   Oceania: '#0ea5e9',
   Unknown: '#9ca3af', // สีสำหรับประเทศที่ไม่รู้จัก
 };
-const countryToContinent: Record<string, string> = {
-  "Afghanistan": "Asia",
-  "Albania": "Europe",
-  "Algeria": "Africa",
-  "Andorra": "Europe",
-  "Angola": "Africa",
-  "Antigua and Barbuda": "Americas",
-  "Argentina": "Americas",
-  "Armenia": "Asia",
-  "Australia": "Oceania",
-  "Austria": "Europe",
-  "Azerbaijan": "Asia",
-  "Bahamas": "Americas",
-  "Bahrain": "Asia",
-  "Bangladesh": "Asia",
-  "Barbados": "Americas",
-  "Belarus": "Europe",
-  "Belgium": "Europe",
-  "Belize": "Americas",
-  "Benin": "Africa",
-  "Bhutan": "Asia",
-  "Bolivia": "Americas",
-  "Bosnia and Herzegovina": "Europe",
-  "Botswana": "Africa",
-  "Brazil": "Americas",
-  "Brunei": "Asia",
-  "Bulgaria": "Europe",
-  "Burkina Faso": "Africa",
-  "Burundi": "Africa",
-  "Cabo Verde": "Africa",
-  "Cambodia": "Asia",
-  "Cameroon": "Africa",
-  "Canada": "Americas",
-  "Central African Republic": "Africa",
-  "Chad": "Africa",
-  "Chile": "Americas",
-  "China": "Asia",
-  "Colombia": "Americas",
-  "Comoros": "Africa",
-  "Congo": "Africa",
-  "Costa Rica": "Americas",
-  "Croatia": "Europe",
-  "Cuba": "Americas",
-  "Cyprus": "Asia",
-  "Czechia": "Europe",
-  "Democratic Republic of the Congo": "Africa",
-  "Denmark": "Europe",
-  "Djibouti": "Africa",
-  "Dominica": "Americas",
-  "Dominican Republic": "Americas",
-  "Ecuador": "Americas",
-  "Egypt": "Africa",
-  "El Salvador": "Americas",
-  "Equatorial Guinea": "Africa",
-  "Eritrea": "Africa",
-  "Estonia": "Europe",
-  "Eswatini": "Africa",
-  "Ethiopia": "Africa",
-  "Fiji": "Oceania",
-  "Finland": "Europe",
-  "France": "Europe",
-  "Gabon": "Africa",
-  "Gambia": "Africa",
-  "Georgia": "Asia",
-  "Germany": "Europe",
-  "Ghana": "Africa",
-  "Greece": "Europe",
-  "Grenada": "Americas",
-  "Guatemala": "Americas",
-  "Guinea": "Africa",
-  "Guinea-Bissau": "Africa",
-  "Guyana": "Americas",
-  "Haiti": "Americas",
-  "Honduras": "Americas",
-  "Hungary": "Europe",
-  "Iceland": "Europe",
-  "India": "Asia",
-  "Indonesia": "Asia",
-  "Iran": "Asia",
-  "Iraq": "Asia",
-  "Ireland": "Europe",
-  "Israel": "Asia",
-  "Italy": "Europe",
-  "Jamaica": "Americas",
-  "Japan": "Asia",
-  "Jordan": "Asia",
-  "Kazakhstan": "Asia",
-  "Kenya": "Africa",
-  "Kiribati": "Oceania",
-  "Kuwait": "Asia",
-  "Kyrgyzstan": "Asia",
-  "Laos": "Asia",
-  "Latvia": "Europe",
-  "Lebanon": "Asia",
-  "Lesotho": "Africa",
-  "Liberia": "Africa",
-  "Libya": "Africa",
-  "Liechtenstein": "Europe",
-  "Lithuania": "Europe",
-  "Luxembourg": "Europe",
-  "Madagascar": "Africa",
-  "Malawi": "Africa",
-  "Malaysia": "Asia",
-  "Maldives": "Asia",
-  "Mali": "Africa",
-  "Malta": "Europe",
-  "Marshall Islands": "Oceania",
-  "Mauritania": "Africa",
-  "Mauritius": "Africa",
-  "Mexico": "Americas",
-  "Micronesia": "Oceania",
-  "Moldova": "Europe",
-  "Monaco": "Europe",
-  "Mongolia": "Asia",
-  "Montenegro": "Europe",
-  "Morocco": "Africa",
-  "Mozambique": "Africa",
-  "Myanmar": "Asia",
-  "Namibia": "Africa",
-  "Nauru": "Oceania",
-  "Nepal": "Asia",
-  "Netherlands": "Europe",
-  "New Zealand": "Oceania",
-  "Nicaragua": "Americas",
-  "Niger": "Africa",
-  "Nigeria": "Africa",
-  "North Korea": "Asia",
-  "North Macedonia": "Europe",
-  "Norway": "Europe",
-  "Oman": "Asia",
-  "Pakistan": "Asia",
-  "Palau": "Oceania",
-  "Palestine": "Asia",
-  "Panama": "Americas",
-  "Papua New Guinea": "Oceania",
-  "Paraguay": "Americas",
-  "Peru": "Americas",
-  "Philippines": "Asia",
-  "Poland": "Europe",
-  "Portugal": "Europe",
-  "Qatar": "Asia",
-  "Romania": "Europe",
-  "Russia": "Europe",
-  "Rwanda": "Africa",
-  "Saint Kitts and Nevis": "Americas",
-  "Saint Lucia": "Americas",
-  "Saint Vincent and the Grenadines": "Americas",
-  "Samoa": "Oceania",
-  "San Marino": "Europe",
-  "Sao Tome and Principe": "Africa",
-  "Saudi Arabia": "Asia",
-  "Senegal": "Africa",
-  "Serbia": "Europe",
-  "Seychelles": "Africa",
-  "Sierra Leone": "Africa",
-  "Singapore": "Asia",
-  "Slovakia": "Europe",
-  "Slovenia": "Europe",
-  "Solomon Islands": "Oceania",
-  "Somalia": "Africa",
-  "South Africa": "Africa",
-  "South Korea": "Asia",
-  "South Sudan": "Africa",
-  "Spain": "Europe",
-  "Sri Lanka": "Asia",
-  "Sudan": "Africa",
-  "Suriname": "Americas",
-  "Sweden": "Europe",
-  "Switzerland": "Europe",
-  "Syria": "Asia",
-  "Taiwan": "Asia",
-  "Tajikistan": "Asia",
-  "Tanzania": "Africa",
-  "Thailand": "Asia",
-  "Timor-Leste": "Asia",
-  "Togo": "Africa",
-  "Tonga": "Oceania",
-  "Trinidad and Tobago": "Americas",
-  "Tunisia": "Africa",
-  "Turkey": "Asia",
-  "Turkmenistan": "Asia",
-  "Tuvalu": "Oceania",
-  "Uganda": "Africa",
-  "Ukraine": "Europe",
-  "United Arab Emirates": "Asia",
-  "United Kingdom": "Europe",
-  "United States": "Americas",
-  "Uruguay": "Americas",
-  "Uzbekistan": "Asia",
-  "Vanuatu": "Oceania",
-  "Vatican City": "Europe",
-  "Venezuela": "Americas",
-  "Vietnam": "Asia",
-  "Yemen": "Asia",
-  "Zambia": "Africa",
-  "Zimbabwe": "Africa"
-};   
-
-// เปลี่ยนจาก emoji เป็น ISO country codes สำหรับ flag-icons
-const countryFlags: Record<string, string> = {
-  "China": "cn",
-  "India": "in", 
-  "United States": "us",
-  "Indonesia": "id",
-  "Pakistan": "pk",
-  "Bangladesh": "bd",
-  "Nigeria": "ng",
-  "Brazil": "br",
-  "Russia": "ru",
-  "Mexico": "mx",
-  "Japan": "jp",
-  "Philippines": "ph",
-  "Vietnam": "vn",
-  "Turkey": "tr",
-  "Ethiopia": "et",
-  "Germany": "de",
-  "Egypt": "eg",
-  "Iran": "ir",
-  "Thailand": "th",
-  "United Kingdom": "gb",
-  "France": "fr",
-  "Italy": "it",
-  "South Africa": "za",
-  "Tanzania": "tz",
-  "Myanmar": "mm",
-  "Kenya": "ke",
-  "South Korea": "kr",
-  "Colombia": "co",
-  "Spain": "es",
-  "Uganda": "ug",
-  "Argentina": "ar",
-  "Algeria": "dz",
-  "Sudan": "sd",
-  "Ukraine": "ua",
-  "Iraq": "iq",
-  "Afghanistan": "af",
-  "Poland": "pl",
-  "Canada": "ca",
-  "Morocco": "ma",
-  "Saudi Arabia": "sa",
-  "Uzbekistan": "uz",
-  "Peru": "pe",
-  "Angola": "ao",
-  "Malaysia": "my",
-  "Mozambique": "mz",
-  "Ghana": "gh",
-  "Yemen": "ye",
-  "Nepal": "np",
-  "Venezuela": "ve",
-  "Madagascar": "mg",
-  "Cameroon": "cm",
-  "North Korea": "kp",
-  "Australia": "au",
-  "Niger": "ne",
-  "Taiwan": "tw",
-  "Sri Lanka": "lk",
-  "Burkina Faso": "bf",
-  "Mali": "ml",
-  "Romania": "ro",
-  "Malawi": "mw",
-  "Chile": "cl",
-  "Kazakhstan": "kz",
-  "Zambia": "zm",
-  "Guatemala": "gt",
-  "Ecuador": "ec",
-  "Syria": "sy",
-  "Netherlands": "nl",
-  "Senegal": "sn",
-  "Cambodia": "kh",
-  "Chad": "td",
-  "Somalia": "so",
-  "Zimbabwe": "zw",
-  "Guinea": "gn",
-  "Rwanda": "rw",
-  "Benin": "bj",
-  "Burundi": "bi",
-  "Tunisia": "tn",
-  "Bolivia": "bo",
-  "Belgium": "be",
-  "Haiti": "ht",
-  "Cuba": "cu",
-  "South Sudan": "ss",
-  "Dominican Republic": "do",
-  "Czech Republic": "cz",
-  "Greece": "gr",
-  "Jordan": "jo",
-  "Portugal": "pt",
-  "Azerbaijan": "az",
-  "Sweden": "se",
-  "Honduras": "hn",
-  "United Arab Emirates": "ae",
-  "Hungary": "hu",
-  "Tajikistan": "tj",
-  "Belarus": "by",
-  "Austria": "at",
-  "Papua New Guinea": "pg",
-  "Serbia": "rs",
-  "Israel": "il",
-  "Switzerland": "ch",
-  "Togo": "tg",
-  "Sierra Leone": "sl",
-  "Laos": "la",
-  "Paraguay": "py",
-  "Libya": "ly",
-  "Bulgaria": "bg",
-  "Lebanon": "lb",
-  "Nicaragua": "ni",
-  "Kyrgyzstan": "kg",
-  "El Salvador": "sv",
-  "Turkmenistan": "tm",
-  "Singapore": "sg",
-  "Denmark": "dk",
-  "Finland": "fi",
-  "Congo": "cg",
-  "Slovakia": "sk",
-  "Norway": "no",
-  "Oman": "om",
-  "Palestine": "ps",
-  "Costa Rica": "cr",
-  "Liberia": "lr",
-  "Ireland": "ie",
-  "Central African Republic": "cf",
-  "New Zealand": "nz",
-  "Mauritania": "mr",
-  "Panama": "pa",
-  "Kuwait": "kw",
-  "Croatia": "hr",
-  "Moldova": "md",
-  "Georgia": "ge",
-  "Eritrea": "er",
-  "Uruguay": "uy",
-  "Bosnia and Herzegovina": "ba",
-  "Mongolia": "mn",
-  "Armenia": "am",
-  "Jamaica": "jm",
-  "Qatar": "qa",
-  "Albania": "al",
-  "Puerto Rico": "pr",
-  "Lithuania": "lt",
-  "Namibia": "na",
-  "Gambia": "gm",
-  "Botswana": "bw",
-  "Gabon": "ga",
-  "Lesotho": "ls",
-  "North Macedonia": "mk",
-  "Slovenia": "si",
-  "Guinea-Bissau": "gw",
-  "Latvia": "lv",
-  "Bahrain": "bh",
-  "Equatorial Guinea": "gq",
-  "Trinidad and Tobago": "tt",
-  "Estonia": "ee",
-  "Timor-Leste": "tl",
-  "Mauritius": "mu",
-  "Cyprus": "cy",
-  "Eswatini": "sz",
-  "Djibouti": "dj",
-  "Fiji": "fj",
-  "Reunion": "re",
-  "Comoros": "km",
-  "Guyana": "gy",
-  "Bhutan": "bt",
-  "Solomon Islands": "sb",
-  "Macao": "mo",
-  "Montenegro": "me",
-  "Luxembourg": "lu",
-  "Western Sahara": "eh",
-  "Suriname": "sr",
-  "Cabo Verde": "cv",
-  "Micronesia": "fm",
-  "Maldives": "mv",
-  "Malta": "mt",
-  "Brunei": "bn"
-};
 
 export default function PopulationRacePage() {
   const [dataByYear, setDataByYear] = useState<Record<number, PopulationData[]>>({});
   const [year, setYear] = useState<number>(1950);
   const [selectedRegions, setSelectedRegions] = useState<string[]>(Object.keys(regionsColor));
-  const [isPlaying, setIsPlaying] = useState<boolean>(true); // เพิ่ม state สำหรับ play/pause
-  const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null); // เก็บ interval ID
+  const [isPlaying, setIsPlaying] = useState<boolean>(true);
+  const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true); // เพิ่ม loading state
+  const [error, setError] = useState<string | null>(null); // เพิ่ม error state
+  const [countryToContinent, setCountryToContinent] = useState<Record<string, string>>(CountryToContinent);
+  const [countryFlags, setCountryFlags] = useState<Record<string, string>>(CountryFlags);
 
   useEffect(() => {
+    setIsLoading(true);
     fetch('/api/population')
       .then((res) => res.json())
       .then((response) => {
@@ -419,8 +52,7 @@ export default function PopulationRacePage() {
           console.log(raw);
           
           raw.forEach((row) => {
-              // Filter only countries included in our country-continent mapping
-              if (!countryToContinent[row.country]) return; // ✅ กรอง
+            if (!countryToContinent[row.country]) return;
             if (!grouped[row.year]) grouped[row.year] = [];
             grouped[row.year].push(row);
           });
@@ -430,12 +62,18 @@ export default function PopulationRacePage() {
           }
 
           setDataByYear(grouped);
+          setError(null);
         } else {
           console.error('API Error:', response.error);
+          setError('Failed to load data from API');
         }
       })
       .catch((error) => {
         console.error('Fetch error:', error);
+        setError('Failed to fetch data');
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   }, []);
 
@@ -522,6 +160,45 @@ export default function PopulationRacePage() {
       document.head.removeChild(style);
     };
   }, []);
+
+  // Loading component
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">Loading Population Data</h2>
+          <p className="text-gray-500">Please wait while we fetch the data...</p>
+          <div className="mt-4">
+            <div className="flex justify-center space-x-1">
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error component
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">Error Loading Data</h2>
+          <p className="text-gray-500 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-4xl mx-auto font-sans">
