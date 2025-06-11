@@ -258,7 +258,7 @@ export default function PopulationRacePage() {
           <div className="w-8  hidden lg:block text-right font-bold text-gray-600 mr-3"></div>
           
           {/* ชื่อประเทศ */}
-          <div className="w-5 lg:w-32   font-semibold text-sm mr-3 text-left"></div>
+          <div className="w-0 lg:w-32   font-semibold text-sm mr-3 text-left"></div>
           
           <div className="flex-1 mr-3">
             <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
@@ -277,7 +277,7 @@ export default function PopulationRacePage() {
             <div className="h-1 bg-gray-200 rounded mb-4"></div>
           </div>
           
-          <div className="w-28"></div>
+          <div className="w-5 lg:w-20 "></div>
         </div>
       </div>
       
@@ -298,7 +298,7 @@ export default function PopulationRacePage() {
               </div>
               
               {/* ธงชาติ + ชื่อประเทศ */}
-              <div className="w-5 lg:w-32  font-semibold text-sm mr-3 text-left flex items-center gap-2">
+              <div className="w-0 lg:w-32  font-semibold text-sm mr-3 text-left flex items-center gap-2">
                 
                 <span className="truncate hidden lg:block">
                   {item.country}
@@ -321,7 +321,7 @@ export default function PopulationRacePage() {
                   }}
                 />
                 <span className={`fi fi-${countryFlags[item.country] || ''} absolute lg:right-[30px] right-[25px] `}></span>
-                <div className="w-28 text-start ">
+                <div className="w-5 lg:w-20 text-start ">
                   <AnimatedNumber value={item.population} />
                 </div>
               </div>
@@ -330,10 +330,10 @@ export default function PopulationRacePage() {
         </AnimatePresence>
         
         {/* Year และ Total แสดงด้านขวา */}
-        <div className='mt-8 relative lg:absolute  right-[28%] p-4 rounded-lg bottom-[15%]'>
-          <div className="text-right mb-6">
-            <div className="text-4xl font-bold text-gray-600">{year}</div>
-              <div className="text-lg text-gray-600 flex justify-end items-center">
+        <div className='mt-6 lg:mt-8 bg-gray-50 lg:bg-transparent p-3 lg:p-4 rounded-lg lg:absolute lg:right-[28%] lg:bottom-[15%]'>
+          <div className="text-center lg:text-right">
+            <div className="text-2xl lg:text-4xl font-bold text-gray-600 mb-2">{year}</div>
+            <div className="text-sm lg:text-lg text-gray-600 flex justify-center lg:justify-end items-center">
                 Total: 
                 <span className="block lg:hidden ml-1">
                   {formatPopulation(top12Data.reduce((sum : number, item : PopulationData) => sum + item.population, 0), true)}
@@ -342,8 +342,8 @@ export default function PopulationRacePage() {
                   {formatPopulation(top12Data.reduce((sum : number, item : PopulationData) => sum + item.population, 0))}
                 </span>
               </div>
-            </div>
           </div>
+        </div>
         </div>
 
       {/* Timeline Slider */}
@@ -360,7 +360,7 @@ export default function PopulationRacePage() {
               background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((year - 1950) / (2021 - 1950)) * 100}%, #e5e7eb ${((year - 1950) / (2021 - 1950)) * 100}%, #e5e7eb 100%)`
             }}
           />
-          <div className="flex justify-between text-xs text-gray-500 mt-1">
+          <div className="hidden justify-between text-xs text-gray-500 mt-1 sm:flex">
             <span>1950</span>
             <span>1960</span>
             <span>1970</span>
