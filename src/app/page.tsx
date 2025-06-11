@@ -402,38 +402,40 @@ export default function PopulationRacePage() {
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null); // เก็บ interval ID
 
   useEffect(() => {
-    fetch('/population-and-demography.csv')
-      .then((res) => res.text())
-      .then((text) => {
-        Papa.parse(text, {
-          header: true,
-          complete: (result) => {
-            console.log('CSV Data:', result.data);
-            
-            const raw: PopulationData[] = result.data.map((row: any) => ({
-              year: +row.Year,
-              country: row['Country name'],
-              population: +row.Population,
-              region: countryToContinent[row['Country name']] || 'Unknown',
-            }));
+    fetch('/api/population')
+      .then((res) => res.json())
+      .then((response) => {
+        if (response.success) {
+          console.log('API Data:', response.data);
+          
+          const raw: PopulationData[] = response.data.map((row: any) => ({
+            year: +row.Year,
+            country: row['Country name'],
+            population: +row.Population,
+            region: countryToContinent[row['Country name']] || 'Unknown',
+          }));
 
-            const grouped: Record<number, PopulationData[]> = {};
-            console.log(raw);
-            
-            raw.forEach((row) => {
-                // Filter only countries included in our country-continent mapping
-                if (!countryToContinent[row.country]) return; // ✅ กรอง
-              if (!grouped[row.year]) grouped[row.year] = [];
-              grouped[row.year].push(row);
-            });
+          const grouped: Record<number, PopulationData[]> = {};
+          console.log(raw);
+          
+          raw.forEach((row) => {
+              // Filter only countries included in our country-continent mapping
+              if (!countryToContinent[row.country]) return; // ✅ กรอง
+            if (!grouped[row.year]) grouped[row.year] = [];
+            grouped[row.year].push(row);
+          });
 
-            for (const y in grouped) {
-              grouped[+y] = grouped[+y].sort((a, b) => b.population - a.population);
-            }
+          for (const y in grouped) {
+            grouped[+y] = grouped[+y].sort((a, b) => b.population - a.population);
+          }
 
-            setDataByYear(grouped);
-          },
-        });
+          setDataByYear(grouped);
+        } else {
+          console.error('API Error:', response.error);
+        }
+      })
+      .catch((error) => {
+        console.error('Fetch error:', error);
       });
   }, []);
 
