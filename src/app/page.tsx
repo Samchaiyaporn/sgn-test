@@ -627,15 +627,15 @@ export default function PopulationRacePage() {
         </AnimatePresence>
         
         {/* Year และ Total แสดงด้านขวา */}
-        <div className='mt-8 absolute right-[17%] p-4 rounded-lg bottom-[5%]'>
+        <div className='mt-8 absolute right-[28%] p-4 rounded-lg bottom-[15%]'>
           <div className="text-right mb-6">
             <div className="text-4xl font-bold text-gray-600">{year}</div>
-            <div className="text-lg text-gray-600">
-              Total: {top12Data.reduce((sum, item) => sum + item.population, 0).toLocaleString()}
+              <div className="text-lg text-gray-600">
+                Total: {top12Data.reduce((sum, item) => sum + item.population, 0).toLocaleString()}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
       {/* Timeline Slider */}
       <div className="mt-8">        
