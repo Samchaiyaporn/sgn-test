@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Papa from 'papaparse';
 import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion';
 import { CountryToContinent } from './data/countryToContinent';
@@ -116,9 +116,9 @@ export default function PopulationRacePage() {
     setIsPlaying(!isPlaying);
   };
 
-  const chartData = dataByYear[year] || [];
+  const chartData: PopulationData[] = dataByYear[year] || [];
   // กรองข้อมูลตามทวีปที่เลือก
-  const filteredData = chartData.filter(item => selectedRegions.includes(item.region));
+  const filteredData: PopulationData[] = chartData.filter((item: PopulationData) => selectedRegions.includes(item.region));
   const top12Data = filteredData.slice(0, 12);
   const maxPopulation = Math.max(...top12Data.map((d) => d.population), 1);
 
@@ -252,45 +252,80 @@ export default function PopulationRacePage() {
           {top12Data.map((item: PopulationData, index: number) => (
             <motion.div
               key={item.country}
+              layoutId={item.country} // เพิ่ม layoutId สำหรับ animation การสลับตำแหน่ง
+              layout // เปิดใช้ layout animation
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.6 }}
-              className="flex items-center w-full"
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ 
+                duration: 0.6,
+                layout: { 
+                  duration: 0.8, 
+                  ease: "easeInOut" 
+                }
+              }}
+              className="flex items-center w-full group relative"
             >
               {/* เลขอันดับ */}
-              <div className="w-8 text-right hidden lg:block font-bold text-gray-600 mr-3">
+              <motion.div 
+                className="w-8 text-right hidden lg:block font-bold text-gray-600 mr-3"
+                layout
+              >
                 {index + 1}
-              </div>
+              </motion.div>
               
               {/* ธงชาติ + ชื่อประเทศ */}
-              <div className="w-0 lg:w-32  font-semibold text-sm mr-3 text-left flex items-center gap-2">
-                
+              <motion.div 
+                className="w-0 lg:w-32 font-semibold text-sm mr-3 text-left flex items-center gap-2"
+                layout
+              >
                 <span className="truncate hidden lg:block">
                   {item.country}
                 </span>
                 <span className="truncate block lg:hidden">
                   {countryFlags[item.country] ?? 'Unknown'}
                 </span>
-              </div>
+              </motion.div>
               
               {/* Container สำหรับ bar */}
-              <div className="flex-1 relative mr-3 flex items-center">
+              <motion.div 
+                className="flex-1 relative mr-3 flex items-center"
+                layout
+              >
                 <motion.div
-                  className="h-8 rounded bg-opacity-90 flex items-center relative"
+                  className="h-8 rounded bg-opacity-90 flex items-center relative cursor-pointer"
                   initial={{ width: 0 }}
                   animate={{ width: `${(item.population / maxPopulation) * 100}%` }}
                   transition={{ duration: 1, ease: "easeInOut" }}
+                  whileHover={{ 
+                    scale: 1.02, 
+                    y: -2,
+                    transition: { duration: 0.2 }
+                  }}
+                  whileTap={{ scale: 0.98 }}
                   style={{
                     backgroundColor: regionsColor[item.region] || '#6366f1',
                     minWidth: '20px'
                   }}
                 />
-                <span className={`fi fi-${countryFlags[item.country] || ''} absolute lg:right-[30px] right-[25px] `}></span>
-                <div className="w-5 lg:w-20 text-start ">
+                <span className={`fi fi-${countryFlags[item.country] || ''} absolute lg:right-[30px] right-[25px]`}></span>
+                <div className="w-5 lg:w-20 text-start">
                   <AnimatedNumber value={item.population} />
                 </div>
-              </div>
+                
+                {/* Tooltip */}
+                <div className="absolute left-0 bottom-full mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                  <div className="font-semibold">{item.country}</div>
+                  <div className="text-xs text-gray-300">
+                    Population: {item.population.toLocaleString()}
+                  </div>
+                  <div className="text-xs text-gray-300">
+                    Region: {item.region}
+                  </div>
+                  {/* Tooltip arrow */}
+                  <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-800"></div>
+                </div>
+              </motion.div>
             </motion.div>
           ))}
         </AnimatePresence>
@@ -361,19 +396,25 @@ export default function PopulationRacePage() {
   );
 }
 
-// Update the AnimatedNumber component to be responsive
+// Update the AnimatedNumber component to animate counting up
 function AnimatedNumber({ value }: { value: number }) {
-  const spring = useSpring(value, { damping: 20, stiffness: 100 });
-  const rounded = useTransform(spring, (latest) => Math.round(latest));
+  const [displayValue, setDisplayValue] = useState(0);
+  const spring = useSpring(displayValue, { damping: 25, stiffness: 80 });
 
   useEffect(() => {
     spring.set(value);
-  }, [value]);
+    
+    const unsubscribe = spring.on("change", (latest) => {
+      setDisplayValue(Math.round(latest));
+    });
+
+    return () => unsubscribe();
+  }, [value, spring]);
 
   return (
     <motion.span className="ml-2 tabular-nums text-sm w-24 text-left inline-block">
-      <span className="block lg:hidden">{formatPopulation(rounded.get(), true)}</span>
-      <span className="hidden lg:block">{rounded.get().toLocaleString()}</span>
+      <span className="block lg:hidden">{formatPopulation(displayValue, true)}</span>
+      <span className="hidden lg:block">{displayValue.toLocaleString()}</span>
     </motion.span>
   );
 }
