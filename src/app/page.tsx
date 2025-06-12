@@ -5,6 +5,7 @@ import Papa from 'papaparse';
 import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion';
 import { CountryToContinent } from './data/countryToContinent';
 import { CountryFlags } from './data/countryFlags';
+import "/node_modules/flag-icons/css/flag-icons.min.css";
 
 interface PopulationData {
   year: number;
@@ -14,11 +15,11 @@ interface PopulationData {
 }
 
 const regionsColor: Record<string, string> = {
-  Asia: '#6366f1',
-  Europe: '#e11d48',
-  Africa: '#16a34a',
-  Americas: '#f59e0b',
-  Oceania: '#0ea5e9',
+  Asia: '#6047ec',
+  Europe: '#a66de8',
+  Africa: '#da8089',
+  Americas: '#fecd45',
+  Oceania: '#f6a431',
   Unknown: '#9ca3af', // สีสำหรับประเทศที่ไม่รู้จัก
 };
 
@@ -55,8 +56,6 @@ export default function PopulationRacePage() {
       .then((res) => res.json())
       .then((response) => {
         if (response.success) {
-          console.log('API Data:', response.data);
-          
           const raw: PopulationData[] = response.data.map((row: any) => ({
             year: +row.Year,
             country: row['Country name'],
@@ -142,39 +141,6 @@ export default function PopulationRacePage() {
     flagIconsCSS.rel = 'stylesheet';
     flagIconsCSS.href = 'https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.2.3/css/flag-icons.min.css';
     document.head.appendChild(flagIconsCSS);
-
-    // เพิ่ม CSS style สำหรับ slider
-    const style = document.createElement('style');
-    style.textContent = `
-      .slider::-webkit-slider-thumb {
-        appearance: none;
-        height: 20px;
-        width: 20px;
-        border-radius: 50%;
-        background: #3b82f6;
-        cursor: pointer;
-        box-shadow: 0 0 2px 0 #555;
-      }
-      .slider::-moz-range-thumb {
-        height: 20px;
-        width: 20px;
-        border-radius: 50%;
-        background: #3b82f6;
-        cursor: pointer;
-        border: none;
-      }
-      .fi {
-        width: 20px;
-        height: 15px;
-        border-radius: 2px;
-      }
-    `;
-    document.head.appendChild(style);
-    
-    return () => {
-      document.head.removeChild(flagIconsCSS);
-      document.head.removeChild(style);
-    };
   }, []);
 
   // Loading component
