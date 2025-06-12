@@ -49,6 +49,8 @@ export default function PopulationRacePage() {
   const [error, setError] = useState<string | null>(null); // เพิ่ม error state
   const [countryToContinent, setCountryToContinent] = useState<Record<string, string>>(CountryToContinent);
   const [countryFlags, setCountryFlags] = useState<Record<string, string>>(CountryFlags);
+  const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
+  const [tooltipTimeout, setTooltipTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setIsLoading(true);
@@ -110,6 +112,49 @@ export default function PopulationRacePage() {
       }
     }
   }, [isPlaying]);
+
+  // เพิ่ม useEffect สำหรับปิด tooltip เมื่อคลิกที่อื่น
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setActiveTooltip(null);
+      if (tooltipTimeout) {
+        clearTimeout(tooltipTimeout);
+        setTooltipTimeout(null);
+      }
+    };
+
+    if (activeTooltip) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [activeTooltip, tooltipTimeout]);
+
+  // ฟังก์ชันสำหรับจัดการ tooltip
+  const handleTooltipClick = (country: string, event: React.MouseEvent) => {
+    event.stopPropagation(); // ป้องกันการ bubble up
+    
+    // ล้าง timeout เดิม (ถ้ามี)
+    if (tooltipTimeout) {
+      clearTimeout(tooltipTimeout);
+    }
+
+    if (activeTooltip === country) {
+      // ถ้าคลิกที่เดิม ให้ปิด
+      setActiveTooltip(null);
+      setTooltipTimeout(null);
+    } else {
+      // แสดง tooltip ใหม่
+      setActiveTooltip(country);
+      
+      // ตั้ง timeout 5 วินาที
+      const timeout = setTimeout(() => {
+        setActiveTooltip(null);
+        setTooltipTimeout(null);
+      }, 5000);
+      
+      setTooltipTimeout(timeout);
+    }
+  };
 
   // ฟังก์ชันสำหรับ toggle play/pause
   const togglePlayPause = () => {
@@ -293,7 +338,7 @@ export default function PopulationRacePage() {
                 layout
               >
                 <motion.div
-                  className="h-8 rounded bg-opacity-90 flex items-center relative cursor-pointer"
+                  className="h-8 rounded bg-opacity-90 flex items-center relative cursor-pointer touch-manipulation"
                   initial={{ width: 0 }}
                   animate={{ width: `${(item.population / maxPopulation) * 100}%` }}
                   transition={{ duration: 1, ease: "easeInOut" }}
@@ -303,18 +348,21 @@ export default function PopulationRacePage() {
                     transition: { duration: 0.2 }
                   }}
                   whileTap={{ scale: 0.98 }}
+                  onClick={(e) => handleTooltipClick(item.country, e)}
                   style={{
                     backgroundColor: regionsColor[item.region] || '#6366f1',
                     minWidth: '20px'
                   }}
                 />
-                <span className={`fi fi-${countryFlags[item.country] || ''} absolute lg:right-[30px] right-[25px]`}></span>
+                <span onClick={(e) => handleTooltipClick(item.country, e)} className={`fi fi-${countryFlags[item.country] || ''} absolute lg:right-[30px] right-[25px]`}></span>
                 <div className="w-5 lg:w-20 text-start">
                   <AnimatedNumber value={item.population} />
                 </div>
                 
-                {/* Tooltip */}
-                <div className="absolute left-0 bottom-full mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                {/* Tooltip - อัพเดทการแสดงผล */}
+                <div className={`absolute left-2 lg:left-0 bottom-full mb-2 px-2 lg:px-3 py-1 lg:py-2 bg-gray-800 text-white text-xs lg:text-sm rounded-lg shadow-lg transition-opacity duration-200 pointer-events-none whitespace-nowrap z-20 max-w-xs ${
+                  activeTooltip === item.country ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                }`}>
                   <div className="font-semibold">{item.country}</div>
                   <div className="text-xs text-gray-300">
                     Population: {item.population.toLocaleString()}
@@ -322,7 +370,6 @@ export default function PopulationRacePage() {
                   <div className="text-xs text-gray-300">
                     Region: {item.region}
                   </div>
-                  {/* Tooltip arrow */}
                   <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-800"></div>
                 </div>
               </motion.div>
